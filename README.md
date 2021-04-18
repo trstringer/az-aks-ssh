@@ -4,6 +4,15 @@ There is documentation on [how to SSH into AKS nodes (Microsoft docs)](https://d
 
 *Note: this script is currently in alpha and should not be used in a production environment.*
 
+## Setup and dependencies
+
+Clone this git repo and use the `az-aks-ssh.sh` direction (see below for usage).
+
+Dependencies:
+
+* kubectl
+* Azure CLI
+
 ## Usage
 
 ```
