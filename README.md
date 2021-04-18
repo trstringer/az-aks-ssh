@@ -1,6 +1,6 @@
 # SSH into AKS agent nodes
 
-There is documentation on [how to SSH into AKS nodes (Microsoft docs)](https://docs.microsoft.com/en-us/azure/aks/ssh). That process is long and quite manual. This script automates this the connection.
+There is documentation on [how to SSH into AKS nodes (Microsoft docs)](https://docs.microsoft.com/en-us/azure/aks/ssh). That process is long and quite manual. This script automates this.
 
 *Note: this script is currently in alpha and should not be used in a production environment.*
 
