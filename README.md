@@ -39,6 +39,7 @@ $ ./az-aks-ssh.sh -g rg1 -n aks1 -d any
 
 ```
 $ ./az-aks-ssh.sh -g rg1 -n aks1 -d cluster_node
+```
 
 **Run a single command non-interactively**
 
