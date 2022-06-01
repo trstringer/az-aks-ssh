@@ -132,7 +132,7 @@ fi
 
 if [[ "$NODE_NAME" == "any" ]]; then
     echo "Selected 'any' node name, getting the first node"
-    NODE_NAME=$(kubectl get no -o jsonpath="{.items[0].metadata.labels['kubernetes\.io/hostname']}")
+    NODE_NAME=$(kubectl get node -o jsonpath="{.items[0].metadata.labels['kubernetes\.io/hostname']}")
 fi
 
 echo "Using node: $NODE_NAME"
