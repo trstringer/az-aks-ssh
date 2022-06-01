@@ -10,7 +10,7 @@ DELETE_SSH_POD=""
 SSH_POD_NAME="aks-ssh-session"
 CLEANUP=""
 
-if [[ $# -eq 0 ]]; then
+function usage() {
     echo "Usage:"
     echo "  SSH into an AKS agent node (pass in -c to run a single command"
     echo "  or omit for an interactive session):"
@@ -29,7 +29,11 @@ if [[ $# -eq 0 ]]; then
     echo ""
     echo "  Cleanup SSH (delete SSH proxy pod and remove all keys):"
     echo "    ./az-aks-ssh.sh --cleanup"
-    exit
+    exit 1
+}
+
+if [[ $# -eq 0 ]]; then
+    usage
 fi
 
 while [[ $# -gt 0 ]]; do
@@ -72,6 +76,9 @@ while [[ $# -gt 0 ]]; do
         --cleanup)
             CLEANUP="yes"
             shift
+            ;;
+        -h|--help)
+            usage
             ;;
     esac
 done
