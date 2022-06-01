@@ -36,7 +36,7 @@ if [[ $# -eq 0 ]]; then
     usage
 fi
 
-RESOURCE_GROUP="${AZURE_DEFAULTS_GROUP:-}"
+RESOURCE_GROUP="${AZURE_DEFAULTS_GROUP:-$(az config get defaults.group --query value --output tsv 2>/dev/null || true)}"
 
 while [[ $# -gt 0 ]]; do
     ARG="$1"
