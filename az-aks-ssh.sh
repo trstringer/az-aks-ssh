@@ -11,6 +11,11 @@ SSH_POD_NAME="aks-ssh-session"
 CLEANUP=""
 
 function usage() {
+    local msg="${1:-}"
+    if [ -n "$msg" ]; then
+        echo "$msg" >&2
+    fi
+
     echo "Usage:"
     echo "  SSH into an AKS agent node (pass in -c to run a single command"
     echo "  or omit for an interactive session):"
@@ -31,12 +36,6 @@ function usage() {
     echo "    ./az-aks-ssh.sh --cleanup"
     exit 1
 }
-
-if [[ $# -eq 0 ]]; then
-    usage
-fi
-
-RESOURCE_GROUP="${AZURE_DEFAULTS_GROUP:-$(az config get defaults.group --query value --output tsv 2>/dev/null || true)}"
 
 while [[ $# -gt 0 ]]; do
     ARG="$1"
@@ -84,6 +83,26 @@ while [[ $# -gt 0 ]]; do
             ;;
     esac
 done
+
+# Try to infer some settings from the environment as a convenience.
+
+if [ -z "${RESOURCE_GROUP:-}" ]; then
+    RESOURCE_GROUP="${AZURE_DEFAULTS_GROUP:-$(az config get defaults.group --query value --output tsv 2>/dev/null || true)}"
+    if [ -z "${RESOURCE_GROUP:-}" ]; then
+        usage 'Missing resource group.'
+    fi
+fi
+
+if [ -z "${CLUSTER:-}" ]; then
+    aks_clusters=$(az aks list --resource-group "$RESOURCE_GROUP" --query [].name --output tsv)
+    if [ $(echo "$aks_clusters" | wc -l) -eq 1 ]; then
+        CLUSTER="$aks_clusters"
+    fi
+
+    if [ -z "${CLUSTER:-}" ]; then
+        usage 'Missing cluster.'
+    fi
+fi
 
 clear_local_keys () {
     echo "Clearing local keys"
