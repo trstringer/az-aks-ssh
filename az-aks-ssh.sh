@@ -36,6 +36,8 @@ if [[ $# -eq 0 ]]; then
     usage
 fi
 
+RESOURCE_GROUP="${AZURE_DEFAULTS_GROUP:-}"
+
 while [[ $# -gt 0 ]]; do
     ARG="$1"
 
