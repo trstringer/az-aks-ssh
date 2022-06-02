@@ -89,7 +89,9 @@ done
 if [[ -z "$RESOURCE_GROUP" ]]; then
     RESOURCE_GROUP="${AZURE_DEFAULTS_GROUP:-$(az config get defaults.group --query value --output tsv 2>/dev/null || true)}"
     if [[ -z "$RESOURCE_GROUP" ]]; then
-        usage 'Missing resource group.'
+        usage 'Must specify --resource-group'
+    else
+        echo "Defaulting to resource group '$RESOURCE_GROUP'"
     fi
 fi
 
@@ -97,10 +99,11 @@ if [[ -z "$CLUSTER" ]]; then
     aks_clusters=$(az aks list --resource-group "$RESOURCE_GROUP" --query [].name --output tsv)
     if [[ $(echo "$aks_clusters" | wc -l) -eq 1 ]]; then
         CLUSTER="$aks_clusters"
+        echo "Defaulting to single cluster '$CLUSTER' in resource group '$RESOURCE_GROUP'"
     fi
 
     if [[ -z "$CLUSTER" ]]; then
-        usage 'Missing cluster.'
+        usage 'Must specify --cluster'
     fi
 fi
 
