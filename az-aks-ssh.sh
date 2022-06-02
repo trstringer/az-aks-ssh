@@ -8,10 +8,12 @@ CLEAR_LOCAL_KEYS=""
 DELETE_SSH_POD=""
 SSH_POD_NAME="aks-ssh-session"
 CLEANUP=""
+CLUSTER=""
+RESOURCE_GROUP=""
 
 function usage() {
     local msg="${1:-}"
-    if [ -n "$msg" ]; then
+    if [[ -n "$msg" ]]; then
         echo "$msg" >&2
     fi
 
@@ -84,21 +86,20 @@ while [[ $# -gt 0 ]]; do
 done
 
 # Try to infer some settings from the environment as a convenience.
-
-if [ -z "${RESOURCE_GROUP:-}" ]; then
+if [[ -z "$RESOURCE_GROUP" ]]; then
     RESOURCE_GROUP="${AZURE_DEFAULTS_GROUP:-$(az config get defaults.group --query value --output tsv 2>/dev/null || true)}"
-    if [ -z "${RESOURCE_GROUP:-}" ]; then
+    if [[ -z "$RESOURCE_GROUP" ]]; then
         usage 'Missing resource group.'
     fi
 fi
 
-if [ -z "${CLUSTER:-}" ]; then
+if [[ -z "$CLUSTER" ]]; then
     aks_clusters=$(az aks list --resource-group "$RESOURCE_GROUP" --query [].name --output tsv)
-    if [ $(echo "$aks_clusters" | wc -l) -eq 1 ]; then
+    if [[ $(echo "$aks_clusters" | wc -l) -eq 1 ]]; then
         CLUSTER="$aks_clusters"
     fi
 
-    if [ -z "${CLUSTER:-}" ]; then
+    if [[ -z "$CLUSTER" ]]; then
         usage 'Missing cluster.'
     fi
 fi
