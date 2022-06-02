@@ -83,6 +83,9 @@ while [[ $# -gt 0 ]]; do
         -h|--help)
             usage
             ;;
+        *)
+            usage "Unhandled argument: $1"
+            ;;
     esac
 done
 
