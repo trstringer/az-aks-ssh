@@ -10,6 +10,7 @@ SSH_POD_NAME="aks-ssh-session"
 CLEANUP=""
 CLUSTER=""
 RESOURCE_GROUP=""
+NODE_NAME="any"
 
 function usage() {
     local msg="${1:-}"
