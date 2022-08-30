@@ -11,6 +11,7 @@ CLEANUP=""
 CLUSTER=""
 RESOURCE_GROUP=""
 NODE_NAME="any"
+RUNNING_NODE=""
 
 function usage() {
     local msg="${1:-}"
@@ -26,7 +27,8 @@ function usage() {
     echo "        -n|--cluster-name <cluster> \\"
     echo "        -d|--node-name <node_name|any> \\"
     echo "        [-c|--command <command>] \\"
-    echo "        [-o|--output-file <file>]"
+    echo "        [-o|--output-file <file>] \\"
+    echo "        [-r|--running-node <node-name-to-start-the-pod>]"
     echo ""
     echo "  Delete all locally generated SSH keys (~/.ssh/az_aks_*):"
     echo "    ./az-aks-ssh.sh --clear-local-ssh-keys"
@@ -60,6 +62,11 @@ while [[ $# -gt 0 ]]; do
             ;;
         -c|--command)
             COMMAND="$2"
+            shift
+            shift
+            ;;
+        -r|--running-node)
+            RUNNING_NODE="$2"
             shift
             shift
             ;;
@@ -221,7 +228,14 @@ echo "Instance IP is $INSTANCE_IP"
 
 if ! kubectl get po "$SSH_POD_NAME"; then
     echo "Proxy pod doesn't exist, setting it up"
-    kubectl run "$SSH_POD_NAME" --image ubuntu:bionic -- /bin/bash -c "sleep infinity"
+    OVERRIDES=""
+    if [[ ! -z "$RUNNING_NODE" ]]; then
+      OVERRIDES="{\"spec\": { \"nodeSelector\": {\"kubernetes.io/hostname\": \"$RUNNING_NODE\"}}}"
+      echo "Running with node selector: $OVERRIDES"
+      kubectl run "$SSH_POD_NAME" --image ubuntu:bionic --overrides="$OVERRIDES" -- /bin/bash -c "sleep infinity"
+    else
+      kubectl run "$SSH_POD_NAME" --image ubuntu:bionic -- /bin/bash -c "sleep infinity"
+    fi
     while true; do
         echo "Waiting for proxy pod to be in a Running state"
         POD_STATE=$(kubectl get po "$SSH_POD_NAME" -o jsonpath="{.status.phase}")
