@@ -28,7 +28,7 @@ function usage() {
     echo "        -d|--node-name <node_name|any> \\"
     echo "        [-c|--command <command>] \\"
     echo "        [-o|--output-file <file>] \\"
-    echo "        [-r|--running-node <node-name-to-start-the-pod>] \\"
+    echo "        [-r|--running-node <node-name-to-start-the-pod>]"
     echo ""
     echo "  Delete all locally generated SSH keys (~/.ssh/az_aks_*):"
     echo "    ./az-aks-ssh.sh --clear-local-ssh-keys"
