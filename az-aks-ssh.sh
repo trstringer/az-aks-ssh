@@ -193,7 +193,7 @@ ACCESS_EXTENSION=$(az vmss show \
     --resource-group "$NODE_RESOURCE_GROUP" \
     --name "$CONTAINING_VMSS" \
     --instance-id $INSTANCE_ID \
-    --query "instanceView.extensions[?name == 'VMAccessForLinux']" -o tsv)
+    --query "resources[?name == 'VMAccessForLinux']" -o tsv)
 
 if [[ -z "$ACCESS_EXTENSION" || -n "$CREATED_KEY_FILE" ]]; then
     echo "Access extension does not exist or new key generated, adding to VM"
