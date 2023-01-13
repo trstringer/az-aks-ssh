@@ -7,6 +7,7 @@ OUTPUT_FILE="/dev/stdout"
 CLEAR_LOCAL_KEYS=""
 DELETE_SSH_POD=""
 SSH_POD_NAME="aks-ssh-session"
+POD_NAME=""
 CLEANUP=""
 CLUSTER=""
 RESOURCE_GROUP=""
@@ -25,6 +26,7 @@ function usage() {
     echo "        -g|--resource-group <resource_group> \\"
     echo "        -n|--cluster-name <cluster> \\"
     echo "        -d|--node-name <node_name|any> \\"
+    echo "        [-p|--pod-name <pod_name>] \\"
     echo "        [-c|--command <command>] \\"
     echo "        [-o|--output-file <file>]"
     echo ""
@@ -55,6 +57,11 @@ while [[ $# -gt 0 ]]; do
             ;;
         -d|--node-name)
             NODE_NAME="$2"
+            shift
+            shift
+            ;;
+        -p|--pod-name)
+            POD_NAME="$2"
             shift
             shift
             ;;
@@ -137,12 +144,20 @@ if [[ -n "$CLEANUP" ]]; then
     exit
 fi
 
+if [[ -n "$POD_NAME" ]] && [[ "$NODE_NAME" == "any" ]]; then
+    NODE_NAME=$(kubectl get pod "$POD_NAME" -o jsonpath="{.spec.nodeName}")
+    echo "Selecting node $NODE_NAME where pod $POD_NAME resides."
+fi
+
 if [[ "$NODE_NAME" == "any" ]]; then
     echo "Selected 'any' node name, getting the first node"
     NODE_NAME=$(kubectl get node -o jsonpath="{.items[0].metadata.labels['kubernetes\.io/hostname']}")
 fi
 
 echo "Using node: $NODE_NAME"
+
+# Append the node name to the pod name.
+SSH_POD_NAME="$SSH_POD_NAME-$NODE_NAME"
 
 NODE_RESOURCE_GROUP=$(az aks show \
     --resource-group "$RESOURCE_GROUP" \
@@ -193,7 +208,7 @@ ACCESS_EXTENSION=$(az vmss show \
     --resource-group "$NODE_RESOURCE_GROUP" \
     --name "$CONTAINING_VMSS" \
     --instance-id $INSTANCE_ID \
-    --query "instanceView.extensions[?name == 'VMAccessForLinux']" -o tsv)
+    --query "resources[?name == 'VMAccessForLinux']" -o tsv)
 
 if [[ -z "$ACCESS_EXTENSION" || -n "$CREATED_KEY_FILE" ]]; then
     echo "Access extension does not exist or new key generated, adding to VM"
@@ -221,7 +236,13 @@ echo "Instance IP is $INSTANCE_IP"
 
 if ! kubectl get po "$SSH_POD_NAME"; then
     echo "Proxy pod doesn't exist, setting it up"
-    kubectl run "$SSH_POD_NAME" --image ubuntu:bionic -- /bin/bash -c "sleep infinity"
+    # Need to place the pod on the same node to avoid some weird TTY issues.
+    kubectl run "$SSH_POD_NAME" \
+        --restart=Never \
+        --image debian:latest \
+        --overrides='{ "spec": { "hostNetwork": true, "nodeName": "'$NODE_NAME'" } }' \
+        -- \
+        /bin/bash -c "sleep infinity"
     while true; do
         echo "Waiting for proxy pod to be in a Running state"
         POD_STATE=$(kubectl get po "$SSH_POD_NAME" -o jsonpath="{.status.phase}")
